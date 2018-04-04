@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, width=device-width">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <title>우리동네 미세먼지(실시간 대기오염정보)</title>
+
+    <style>
+        .ui-listview>.ui-li-static.lvOne {
+            font-size: 16px;
+            font-weight: bold;
+            padding-left: 10px;
+        }
+
+        .lvTwo a {
+            font-size: 14px;
+            font-weight: normal;
+        }
+
+        .ui-panel.ui-panel-open {
+            position: fixed;
+        }
+
+        .ui-panel-inner {
+            position: absolute;
+            top: 1px;
+            left: 0;
+            right: 0;
+            bottom: 0px;
+            overflow: scroll;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .ui-grid-d.main_navbar li a {
+            font-size: 11px;
+        }
+
+        #map_korea {
+            position: absolute;
+            top: 73px;
+            left: 0;
+            right: 0;
+            bottom: 42px;
+            z-index: 1;
+        }
+
+        /* 공통 영역 */
+
+        div.common_mark_size {
+            position: absolute;
+            white-space: normal;
+            width: 30px;
+            height: 30px;
+            z-index: 2;
+            float: left;
+        }
+
+
+        /* 지역 위치 */
+
+        div.zone_seoul {
+            top: 30%;
+            left: 42%;
+        }
+
+        div.zone_busan {
+            top: 60%;
+            left: 70%;
+        }
+
+        div.zone_daegu {
+            top: 52%;
+            left: 64%;
+        }
+
+        div.zone_incheon {
+            top: 30%;
+            left: 34%;
+        }
+
+        div.zone_gwangju {
+            top: 60%;
+            left: 38%;
+        }
+
+        div.zone_daejeon {
+            top: 47%;
+            left: 47%;
+        }
+
+        div.zone_ulsan {
+            top: 55%;
+            left: 76%;
+        }
+
+        div.zone_gyeonggi {
+            top: 33%;
+            left: 50%;
+        }
+
+        div.zone_gangwon {
+            top: 28%;
+            left: 58%;
+        }
+
+        div.zone_chungbuk {
+            top: 39%;
+            left: 56%;
+        }
+
+        div.zone_chungnam {
+            top: 43%;
+            left: 38%;
+        }
+
+        div.zone_jeonbuk {
+            top: 55%;
+            left: 46%;
+        }
+
+        div.zone_jeonnam {
+            top: 67%;
+            left: 36%;
+        }
+
+        div.zone_gyeongbuk {
+            top: 45%;
+            left: 67%;
+            white-space: normal;
+        }
+
+        div.zone_gyeongnam {
+            top: 60%;
+            left: 59%;
+            white-space: normal;
+        }
+
+        div.zone_jeju {
+            top: 80%;
+            left: 34%;
+        }
+
+        div.zone_sejong {
+            top: 40%;
+            left: 47%;
+        }
+
+        /* 시도명 & 데이터 값 */
+
+        .sido_name {
+            font-size: 10px;
+            text-align: center;
+            text-shadow: none;
+            color: white;
+        }
+
+        .sido_point {
+            font-size: 10px;
+            text-align: center;
+            text-shadow: none;
+            vertical-align: text-top;
+            color: white;
+        }
+
+        /* 표시 아이콘(파랑, 녹색, 주황, 빨강) */
+
+        p.bubble {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            margin: 0px;
+            padding: 0px;
+            -webkit-border-radius: 10px;
+            -moz-border-radius: 10px;
+            border-radius: 10px;
+            border: #C3C3C3 solid 1px;
+            background: #FFFFFF;
+            z-index: 2;
+            color: white;
+            font-size: 14px;
+            font-style: normal;
+            text-align: center;
+            text-shadow: none;
+            vertical-align: middle;
+        }
+
+        p.bubble:after {
+            content: '';
+            position: absolute;
+            border-style: solid;
+            border-width: 10px 5px 0;
+            border-color: #FFFFFF transparent;
+            display: block;
+            width: 0;
+            z-index: 2;
+            bottom: -10px;
+            left: 10px;
+        }
+
+        p.bubble:before {
+            content: '';
+            position: absolute;
+            border-style: solid;
+            border-width: 11px 6px 0;
+            border-color: #C3C3C3 transparent;
+            display: block;
+            width: 0;
+            z-index: 2;
+            bottom: -13px;
+            left: 9px;
+        }
+
+
+        p.bubble_blue {
+            background: #32A1FF;
+        }
+
+        p.bubble_blue:after {
+            border-color: #32A1FF transparent;
+        }
+
+        p.bubble_blue:before {
+            border-color: #C3C3C3 transparent;
+        }
+
+        p.bubble_green {
+            background: #00C73C;
+        }
+
+        p.bubble_green:after {
+            border-color: #00C73C transparent;
+        }
+
+        p.bubble_green:before {
+            border-color: #C3C3C3 transparent;
+        }
+
+        p.bubble_orange {
+            background: #FD9B5A;
+        }
+
+        p.bubble_orange:after {
+            border-color: #FD9B5A transparent;
+        }
+
+        p.bubble_orange:before {
+            border-color: #C3C3C3 transparent;
+        }
+
+        p.bubble_red {
+            background: #FF5959;
+        }
+
+        p.bubble_red:after {
+            border-color: #FF5959 transparent;
+        }
+
+        p.bubble_red:before {
+            border-color: #C3C3C3 transparent;
+        }
+
+    </style>
+
+    <script>
+        $(document).ready(function() {
+
+            // 브라우저의 넓이가 실시간으로 변동될 때 설정
+            $(window).resize(function() {
+                var headerWidth = $('#main_header').width(); // 헤더 길이
+                var headerHeight = $('#main_header').height(); // 헤더 높이
+                var footerTop = $('#main_footer').position().top; // 풋터 위치
+                var footerHeight = $('#main_footer').height(); // 풋터 높이
+                // alert('[브라우저 크기 변동] 헤더 길이: ' + headerWidth + ' / 헤더 높이: ' + headerHeight + ' / 풋터 위치: ' + footerTop + ' / 풋터 높이: ' + footerHeight);
+                // console.log('[브라우저 크기 변동] 헤더 길이: ' + headerWidth + ' / 헤더 높이: ' + headerHeight + ' / 풋터 위치: ' + footerTop + ' / 풋터 높이: ' + footerHeight);
+
+                // div 맵 크기 세팅
+                $('#map_korea').css({
+                    'top': headerHeight,
+                    'width': headerWidth,
+                    'height': $(document).height() - (headerHeight + footerHeight),
+                    'bottom': footerTop
+                });
+
+                // 지도 이미지 크기 세팅
+                $('#img_korea').css({
+                    'top': headerHeight,
+                    'width': headerWidth,
+                    'height': $(document).height() - (headerHeight + footerHeight),
+                    'bottom': footerTop
+                });
+            });
+
+            // 헤더 + 풋터 길이 및 높이 구하기
+            var headerWidth = $('#main_header').width(); // 헤더 길이
+            var headerHeight = $('#main_header').height(); // 헤더 높이
+            var footerTop = $('#main_footer').position().top; // 풋터 위치
+            var footerHeight = $('#main_footer').height(); // 풋터 높이
+            // alert('헤더 길이: ' + headerWidth + ' / 헤더 높이: ' + headerHeight + ' / 풋터 위치: ' + footerTop + ' / 풋터 높이: ' + footerHeight);
+            // console.log('헤더 길이: ' + headerWidth + ' / 헤더 높이: ' + headerHeight + ' / 풋터 위치: ' + footerTop + ' / 풋터 높이: ' + footerHeight);
+
+            // div 지도 크기 세팅
+            $('#map_korea').css({
+                /*'position' : 'absolute',*/
+                'top': headerHeight,
+                'width': headerWidth,
+                'height': $(document).height() - (headerHeight + footerHeight),
+                'bottom': footerTop
+            });
+
+            // 지도 이미지 크기 세팅
+            $('#img_korea').css({
+                'top': headerHeight,
+                'width': headerWidth,
+                'height': $(document).height() - (headerHeight + footerHeight),
+                'bottom': footerTop
+            });
+
+            // 데이터 저장 전역변수
+            var mainData;
+
+            // [통신] 시도별 실시간 평균정보 조회(시간단위)
+            $.ajax({
+                type: 'GET',
+                dataType: 'json',
+                async: true,
+                cache: false,
+                url: 'http://celloa.com/restful/airpollutioninfo/sidoRealAvgHour',
+                data: {
+                    'item': 'PM10,PM25,O3,NO2,CO,SO2'
+                },
+                success: function(data, textStatus, jqXHR) {
+                    //console.log(data);
+                    mainData = data;
+
+                    $.each(data.list_PM10, function(idx, item) {
+                        if (idx === 0) {
+                            if (item.seoul > 0 && item.seoul <= 30) {
+                                $("#bubble_seoul").addClass("bubble bubble_blue");
+                            } else if (item.seoul > 30 && item.seoul <= 80) {
+                                $("#bubble_seoul").addClass("bubble bubble_green");
+                            } else if (item.seoul > 80 && item.seoul <= 150) {
+                                $("#bubble_seoul").addClass("bubble bubble_orange");
+                            } else if (item.seoul > 150) {
+                                $("#bubble_seoul").addClass("bubble bubble_red");
+                            }
+
+                            if (item.busan > 0 && item.busan <= 30) {
+                                $("#bubble_busan").addClass("bubble bubble_blue");
+                            } else if (item.busan > 30 && item.busan <= 80) {
+                                $("#bubble_busan").addClass("bubble bubble_green");
+                            } else if (item.busan > 80 && item.busan <= 150) {
+                                $("#bubble_busan").addClass("bubble bubble_orange");
+                            } else if (item.busan > 150) {
+                                $("#bubble_busan").addClass("bubble bubble_red");
+                            }
+
+
+                            if (item.daegu > 0 && item.daegu <= 30) {
+                                $("#bubble_daegu").addClass("bubble bubble_blue");
+                            } else if (item.daegu > 30 && item.daegu <= 80) {
+                                $("#bubble_daegu").addClass("bubble bubble_green");
+                            } else if (item.daegu > 80 && item.daegu <= 150) {
+                                $("#bubble_daegu").addClass("bubble bubble_orange");
+                            } else if (item.daegu > 150) {
+                                $("#bubble_daegu").addClass("bubble bubble_red");
+                            }
+
+                            if (item.incheon > 0 && item.incheon <= 30) {
+                                $("#bubble_incheon").addClass("bubble bubble_blue");
+                            } else if (item.incheon > 30 && item.incheon <= 80) {
+                                $("#bubble_incheon").addClass("bubble bubble_green");
+                            } else if (item.incheon > 80 && item.incheon <= 150) {
+                                $("#bubble_incheon").addClass("bubble bubble_orange");
+                            } else if (item.incheon > 150) {
+                                $("#bubble_incheon").addClass("bubble bubble_red");
+                            }
+
+                            if (item.gwangju > 0 && item.gwangju <= 30) {
+                                $("#bubble_gwangju").addClass("bubble bubble_blue");
+                            } else if (item.gwangju > 30 && item.gwangju <= 80) {
+                                $("#bubble_gwangju").addClass("bubble bubble_green");
+                            } else if (item.gwangju > 80 && item.gwangju <= 150) {
+                                $("#bubble_gwangju").addClass("bubble bubble_orange");
+                            } else if (item.gwangju > 150) {
+                                $("#bubble_gwangju").addClass("bubble bubble_red");
+                            }
+
+                            if (item.daejeon > 0 && item.daejeon <= 30) {
+                                $("#bubble_daejeon").addClass("bubble bubble_blue");
+                            } else if (item.daejeon > 30 && item.daejeon <= 80) {
+                                $("#bubble_daejeon").addClass("bubble bubble_green");
+                            } else if (item.daejeon > 80 && item.daejeon <= 150) {
+                                $("#bubble_daejeon").addClass("bubble bubble_orange");
+                            } else if (item.daejeon > 150) {
+                                $("#bubble_daejeon").addClass("bubble bubble_red");
+                            }
+
+                            if (item.ulsan > 0 && item.ulsan <= 30) {
+                                $("#bubble_ulsan").addClass("bubble bubble_blue");
+                            } else if (item.ulsan > 30 && item.ulsan <= 80) {
+                                $("#bubble_ulsan").addClass("bubble bubble_green");
+                            } else if (item.ulsan > 80 && item.ulsan <= 150) {
+                                $("#bubble_ulsan").addClass("bubble bubble_orange");
+                            } else if (item.ulsan > 150) {
+                                $("#bubble_ulsan").addClass("bubble bubble_red");
+                            }
+
+                            if (item.gyeonggi > 0 && item.gyeonggi <= 30) {
+                                $("#bubble_gyeonggi").addClass("bubble bubble_blue");
+                            } else if (item.gyeonggi > 30 && item.gyeonggi <= 80) {
+                                $("#bubble_gyeonggi").addClass("bubble bubble_green");
+                            } else if (item.gyeonggi > 80 && item.gyeonggi <= 150) {
+                                $("#bubble_gyeonggi").addClass("bubble bubble_orange");
+                            } else if (item.gyeonggi > 150) {
+                                $("#bubble_gyeonggi").addClass("bubble bubble_red");
+                            }
+
+                            if (item.gangwon > 0 && item.gangwon <= 30) {
+                                $("#bubble_gangwon").addClass("bubble bubble_blue");
+                            } else if (item.gangwon > 30 && item.gangwon <= 80) {
+                                $("#bubble_gangwon").addClass("bubble bubble_green");
+                            } else if (item.gangwon > 80 && item.gangwon <= 150) {
+                                $("#bubble_gangwon").addClass("bubble bubble_orange");
+                            } else if (item.gangwon > 150) {
+                                $("#bubble_gangwon").addClass("bubble bubble_red");
+                            }
+
+                            if (item.chungbuk > 0 && item.chungbuk <= 30) {
+                                $("#bubble_chungbuk").addClass("bubble bubble_blue");
+                            } else if (item.chungbuk > 30 && item.chungbuk <= 80) {
+                                $("#bubble_chungbuk").addClass("bubble bubble_green");
+                            } else if (item.chungbuk > 80 && item.chungbuk <= 150) {
+                                $("#bubble_chungbuk").addClass("bubble bubble_orange");
+                            } else if (item.chungbuk > 150) {
+                                $("#bubble_chungbuk").addClass("bubble bubble_red");
+                            }
+
+                            if (item.chungnam > 0 && item.chungnam <= 30) {
+                                $("#bubble_chungnam").addClass("bubble bubble_blue");
+                            } else if (item.chungnam > 30 && item.chungnam <= 80) {
+                                $("#bubble_chungnam").addClass("bubble bubble_green");
+                            } else if (item.chungnam > 80 && item.chungnam <= 150) {
+                                $("#bubble_chungnam").addClass("bubble bubble_orange");
+                            } else if (item.chungnam > 150) {
+                                $("#bubble_chungnam").addClass("bubble bubble_red");
+                            }
+
+                            if (item.jeonbuk > 0 && item.jeonbuk <= 30) {
+                                $("#bubble_jeonbuk").addClass("bubble bubble_blue");
+                            } else if (item.jeonbuk > 30 && item.jeonbuk <= 80) {
+                                $("#bubble_jeonbuk").addClass("bubble bubble_green");
+                            } else if (item.jeonbuk > 80 && item.jeonbuk <= 150) {
+                                $("#bubble_jeonbuk").addClass("bubble bubble_orange");
+                            } else if (item.jeonbuk > 150) {
+                                $("#bubble_jeonbuk").addClass("bubble bubble_red");
+                            }
+
+                            if (item.jeonnam > 0 && item.jeonnam <= 30) {
+                                $("#bubble_jeonnam").addClass("bubble bubble_blue");
+                            } else if (item.jeonnam > 30 && item.jeonnam <= 80) {
+                                $("#bubble_jeonnam").addClass("bubble bubble_green");
+                            } else if (item.jeonnam > 80 && item.jeonnam <= 150) {
+                                $("#bubble_jeonnam").addClass("bubble bubble_orange");
+                            } else if (item.jeonnam > 150) {
+                                $("#bubble_jeonnam").addClass("bubble bubble_red");
+                            }
+
+                            if (item.gyeongbuk > 0 && item.gyeongbuk <= 30) {
+                                $("#bubble_gyeongbuk").addClass("bubble bubble_blue");
+                            } else if (item.gyeongbuk > 30 && item.gyeongbuk <= 80) {
+                                $("#bubble_gyeongbuk").addClass("bubble bubble_green");
+                            } else if (item.gyeongbuk > 80 && item.gyeongbuk <= 150) {
+                                $("#bubble_gyeongbuk").addClass("bubble bubble_orange");
+                            } else if (item.gyeongbuk > 150) {
+                                $("#bubble_gyeongbuk").addClass("bubble bubble_red");
+                            }
+
+                            if (item.gyeongnam > 0 && item.gyeongnam <= 30) {
+                                $("#bubble_gyeongnam").addClass("bubble bubble_blue");
+                            } else if (item.gyeongnam > 30 && item.gyeongnam <= 80) {
+                                $("#bubble_gyeongnam").addClass("bubble bubble_green");
+                            } else if (item.gyeongnam > 80 && item.gyeongnam <= 150) {
+                                $("#bubble_gyeongnam").addClass("bubble bubble_orange");
+                            } else if (item.gyeongnam > 150) {
+                                $("#bubble_gyeongnam").addClass("bubble bubble_red");
+                            }
+
+                            if (item.jeju > 0 && item.jeju <= 30) {
+                                $("#bubble_jeju").addClass("bubble bubble_blue");
+                            } else if (item.jeju > 30 && item.jeju <= 80) {
+                                $("#bubble_jeju").addClass("bubble bubble_green");
+                            } else if (item.jeju > 80 && item.jeju <= 150) {
+                                $("#bubble_jeju").addClass("bubble bubble_orange");
+                            } else if (item.jeju > 150) {
+                                $("#bubble_jeju").addClass("bubble bubble_red");
+                            }
+
+                            if (item.sejong > 0 && item.sejong <= 30) {
+                                $("#bubble_sejong").addClass("bubble bubble_blue");
+                            } else if (item.sejong > 30 && item.sejong <= 80) {
+                                $("#bubble_sejong").addClass("bubble bubble_green");
+                            } else if (item.sejong > 80 && item.sejong <= 150) {
+                                $("#bubble_sejong").addClass("bubble bubble_orange");
+                            } else if (item.sejong > 150) {
+                                $("#bubble_sejong").addClass("bubble bubble_red");
+                            }
+                            $("div.zone_seoul .sido_name").text('서울');
+                            $("div.zone_seoul .sido_point").text(item.seoul);
+                            $("div.zone_busan .sido_name").text('부산');
+                            $("div.zone_busan .sido_point").text(item.busan);
+                            $("div.zone_daegu .sido_name").text('대구');
+                            $("div.zone_daegu .sido_point").text(item.daegu);
+                            $("div.zone_incheon .sido_name").text('인천');
+                            $("div.zone_incheon .sido_point").text(item.incheon);
+                            $("div.zone_gwangju .sido_name").text('광주');
+                            $("div.zone_gwangju .sido_point").text(item.gwangju);
+                            $("div.zone_daejeon .sido_name").text('대전');
+                            $("div.zone_daejeon .sido_point").text(item.daejeon);
+                            $("div.zone_ulsan .sido_name").text('울산');
+                            $("div.zone_ulsan .sido_point").text(item.ulsan);
+                            $("div.zone_gyeonggi .sido_name").text('경기');
+                            $("div.zone_gyeonggi .sido_point").text(item.gyeonggi);
+                            $("div.zone_gangwon .sido_name").text('강원');
+                            $("div.zone_gangwon .sido_point").text(item.gangwon);
+                            $("div.zone_chungbuk .sido_name").text('충북');
+                            $("div.zone_chungbuk .sido_point").text(item.chungbuk);
+                            $("div.zone_chungnam .sido_name").text('충남');
+                            $("div.zone_chungnam .sido_point").text(item.chungnam);
+                            $("div.zone_jeonbuk .sido_name").text('전북');
+                            $("div.zone_jeonbuk .sido_point").text(item.jeonbuk);
+                            $("div.zone_jeonnam .sido_name").text('전남');
+                            $("div.zone_jeonnam .sido_point").text(item.jeonnam);
+                            $("div.zone_gyeongbuk .sido_name").text('경북');
+                            $("div.zone_gyeongbuk .sido_point").text(item.gyeongbuk);
+                            $("div.zone_gyeongnam .sido_name").text('경남');
+                            $("div.zone_gyeongnam .sido_point").text(item.gyeongnam);
+                            $("div.zone_jeju .sido_name").text('제주');
+                            $("div.zone_jeju .sido_point").text(item.jeju);
+                            $("div.zone_sejong .sido_name").text('세종');
+                            $("div.zone_sejong .sido_point").text(item.sejong);
+                            return false;
+                        }
+                    });
+                },
+                error: function(textStatus, errorThrown, jqXHR) {
+                    if (textStatus == 'timeout') {
+                        alert('[대기 시간 초과] 잠시 후 다시 시도해 주세요.');
+                    } else {
+                        alert('오류가 발생하였습니다. 잠시 후 다시 시도해 주세요.');
+                    }
+                },
+                beforeSend: function(settings, jqXHR) {},
+                complete: function(textStatus, jqXHR) {}
+            });
+
+
+
+            $('#btnMenuPanel').click(function() {
+
+            });
+
+            $('#btnSettingPanel').click(function() {
+
+            });
+
+            $('#main_footer').click(function() {
+                location.href = 'gps_test.html';
+            });
+            $('#main_header').click(function() {
+                location.href = 'upload_test.html';
+            });
+            $('#bubble_seoul').click(function() {
+                location.href = 'push_test.html';
+            });
+
+
+            /* 탭 클릭 */
+            $('#pm10').click(function() {
+                $.each(mainData.list_PM10, function(idx, item) {
+                    if (idx == 0) {
+                        if (item.seoul > 0 && item.seoul <= 30) {
+                            $("#bubble_seoul").addClass("bubble bubble_blue");
+                        } else if (item.seoul > 30 && item.seoul <= 80) {
+                            $("#bubble_seoul").addClass("bubble bubble_green");
+                        } else if (item.seoul > 80 && item.seoul <= 150) {
+                            $("#bubble_seoul").addClass("bubble bubble_orange");
+                        } else if (item.seoul > 150) {
+                            $("#bubble_seoul").addClass("bubble bubble_red");
+                        }
+
+                        if (item.busan > 0 && item.busan <= 30) {
+                            $("#bubble_busan").addClass("bubble bubble_blue");
+                        } else if (item.busan > 30 && item.busan <= 80) {
+                            $("#bubble_busan").addClass("bubble bubble_green");
+                        } else if (item.busan > 80 && item.busan <= 150) {
+                            $("#bubble_busan").addClass("bubble bubble_orange");
+                        } else if (item.busan > 150) {
+                            $("#bubble_busan").addClass("bubble bubble_red");
+                        }
+
+
+                        if (item.daegu > 0 && item.daegu <= 30) {
+                            $("#bubble_daegu").addClass("bubble bubble_blue");
+                        } else if (item.daegu > 30 && item.daegu <= 80) {
+                            $("#bubble_daegu").addClass("bubble bubble_green");
+                        } else if (item.daegu > 80 && item.daegu <= 150) {
+                            $("#bubble_daegu").addClass("bubble bubble_orange");
+                        } else if (item.daegu > 150) {
+                            $("#bubble_daegu").addClass("bubble bubble_red");
+                        }
+
+                        if (item.incheon > 0 && item.incheon <= 30) {
+                            $("#bubble_incheon").addClass("bubble bubble_blue");
+                        } else if (item.incheon > 30 && item.incheon <= 80) {
+                            $("#bubble_incheon").addClass("bubble bubble_green");
+                        } else if (item.incheon > 80 && item.incheon <= 150) {
+                            $("#bubble_incheon").addClass("bubble bubble_orange");
+                        } else if (item.incheon > 150) {
+                            $("#bubble_incheon").addClass("bubble bubble_red");
+                        }
+
+                        if (item.gwangju > 0 && item.gwangju <= 30) {
+                            $("#bubble_gwangju").addClass("bubble bubble_blue");
+                        } else if (item.gwangju > 30 && item.gwangju <= 80) {
+                            $("#bubble_gwangju").addClass("bubble bubble_green");
+                        } else if (item.gwangju > 80 && item.gwangju <= 150) {
+                            $("#bubble_gwangju").addClass("bubble bubble_orange");
+                        } else if (item.gwangju > 150) {
+                            $("#bubble_gwangju").addClass("bubble bubble_red");
+                        }
+
+                        if (item.daejeon > 0 && item.daejeon <= 30) {
+                            $("#bubble_daejeon").addClass("bubble bubble_blue");
+                        } else if (item.daejeon > 30 && item.daejeon <= 80) {
+                            $("#bubble_daejeon").addClass("bubble bubble_green");
+                        } else if (item.daejeon > 80 && item.daejeon <= 150) {
+                            $("#bubble_daejeon").addClass("bubble bubble_orange");
+                        } else if (item.daejeon > 150) {
+                            $("#bubble_daejeon").addClass("bubble bubble_red");
+                        }
+
+                        if (item.ulsan > 0 && item.ulsan <= 30) {
+                            $("#bubble_ulsan").addClass("bubble bubble_blue");
+                        } else if (item.ulsan > 30 && item.ulsan <= 80) {
+                            $("#bubble_ulsan").addClass("bubble bubble_green");
+                        } else if (item.ulsan > 80 && item.ulsan <= 150) {
+                            $("#bubble_ulsan").addClass("bubble bubble_orange");
+                        } else if (item.ulsan > 150) {
+                            $("#bubble_ulsan").addClass("bubble bubble_red");
+                        }
+
+                        if (item.gyeonggi > 0 && item.gyeonggi <= 30) {
+                            $("#bubble_gyeonggi").addClass("bubble bubble_blue");
+                        } else if (item.gyeonggi > 30 && item.gyeonggi <= 80) {
+                            $("#bubble_gyeonggi").addClass("bubble bubble_green");
+                        } else if (item.gyeonggi > 80 && item.gyeonggi <= 150) {
+                            $("#bubble_gyeonggi").addClass("bubble bubble_orange");
+                        } else if (item.gyeonggi > 150) {
+                            $("#bubble_gyeonggi").addClass("bubble bubble_red");
+                        }
+
+                        if (item.gangwon > 0 && item.gangwon <= 30) {
+                            $("#bubble_gangwon").addClass("bubble bubble_blue");
+                        } else if (item.gangwon > 30 && item.gangwon <= 80) {
+                            $("#bubble_gangwon").addClass("bubble bubble_green");
+                        } else if (item.gangwon > 80 && item.gangwon <= 150) {
+                            $("#bubble_gangwon").addClass("bubble bubble_orange");
+                        } else if (item.gangwon > 150) {
+                            $("#bubble_gangwon").addClass("bubble bubble_red");
+                        }
+
+                        if (item.chungbuk > 0 && item.chungbuk <= 30) {
+                            $("#bubble_chungbuk").addClass("bubble bubble_blue");
+                        } else if (item.chungbuk > 30 && item.chungbuk <= 80) {
+                            $("#bubble_chungbuk").addClass("bubble bubble_green");
+                        } else if (item.chungbuk > 80 && item.chungbuk <= 150) {
+                            $("#bubble_chungbuk").addClass("bubble bubble_orange");
+                        } else if (item.chungbuk > 150) {
+                            $("#bubble_chungbuk").addClass("bubble bubble_red");
+                        }
+
+                        if (item.chungnam > 0 && item.chungnam <= 30) {
+                            $("#bubble_chungnam").addClass("bubble bubble_blue");
+                        } else if (item.chungnam > 30 && item.chungnam <= 80) {
+                            $("#bubble_chungnam").addClass("bubble bubble_green");
+                        } else if (item.chungnam > 80 && item.chungnam <= 150) {
+                            $("#bubble_chungnam").addClass("bubble bubble_orange");
+                        } else if (item.chungnam > 150) {
+                            $("#bubble_chungnam").addClass("bubble bubble_red");
+                        }
+
+                        if (item.jeonbuk > 0 && item.jeonbuk <= 30) {
+                            $("#bubble_jeonbuk").addClass("bubble bubble_blue");
+                        } else if (item.jeonbuk > 30 && item.jeonbuk <= 80) {
+                            $("#bubble_jeonbuk").addClass("bubble bubble_green");
+                        } else if (item.jeonbuk > 80 && item.jeonbuk <= 150) {
+                            $("#bubble_jeonbuk").addClass("bubble bubble_orange");
+                        } else if (item.jeonbuk > 150) {
+                            $("#bubble_jeonbuk").addClass("bubble bubble_red");
+                        }
+
+                        if (item.jeonnam > 0 && item.jeonnam <= 30) {
+                            $("#bubble_jeonnam").addClass("bubble bubble_blue");
+                        } else if (item.jeonnam > 30 && item.jeonnam <= 80) {
+                            $("#bubble_jeonnam").addClass("bubble bubble_green");
+                        } else if (item.jeonnam > 80 && item.jeonnam <= 150) {
+                            $("#bubble_jeonnam").addClass("bubble bubble_orange");
+                        } else if (item.jeonnam > 150) {
+                            $("#bubble_jeonnam").addClass("bubble bubble_red");
+                        }
+
+                        if (item.gyeongbuk > 0 && item.gyeongbuk <= 30) {
+                            $("#bubble_gyeongbuk").addClass("bubble bubble_blue");
+                        } else if (item.gyeongbuk > 30 && item.gyeongbuk <= 80) {
+                            $("#bubble_gyeongbuk").addClass("bubble bubble_green");
+                        } else if (item.gyeongbuk > 80 && item.gyeongbuk <= 150) {
+                            $("#bubble_gyeongbuk").addClass("bubble bubble_orange");
+                        } else if (item.gyeongbuk > 150) {
+                            $("#bubble_gyeongbuk").addClass("bubble bubble_red");
+                        }
+
+                        if (item.gyeongnam > 0 && item.gyeongnam <= 30) {
+                            $("#bubble_gyeongnam").addClass("bubble bubble_blue");
+                        } else if (item.gyeongnam > 30 && item.gyeongnam <= 80) {
+                            $("#bubble_gyeongnam").addClass("bubble bubble_green");
+                        } else if (item.gyeongnam > 80 && item.gyeongnam <= 150) {
+                            $("#bubble_gyeongnam").addClass("bubble bubble_orange");
+                        } else if (item.gyeongnam > 150) {
+                            $("#bubble_gyeongnam").addClass("bubble bubble_red");
+                        }
+
+                        if (item.jeju > 0 && item.jeju <= 30) {
+                            $("#bubble_jeju").addClass("bubble bubble_blue");
+                        } else if (item.jeju > 30 && item.jeju <= 80) {
+                            $("#bubble_jeju").addClass("bubble bubble_green");
+                        } else if (item.jeju > 80 && item.jeju <= 150) {
+                            $("#bubble_jeju").addClass("bubble bubble_orange");
+                        } else if (item.jeju > 150) {
+                            $("#bubble_jeju").addClass("bubble bubble_red");
+                        }
+
+                        if (item.sejong > 0 && item.sejong <= 30) {
+                            $("#bubble_sejong").addClass("bubble bubble_blue");
+                        } else if (item.sejong > 30 && item.sejong <= 80) {
+                            $("#bubble_sejong").addClass("bubble bubble_green");
+                        } else if (item.sejong > 80 && item.sejong <= 150) {
+                            $("#bubble_sejong").addClass("bubble bubble_orange");
+                        } else if (item.sejong > 150) {
+                            $("#bubble_sejong").addClass("bubble bubble_red");
+                        }
+                        $("div.zone_seoul .sido_name").text('서울');
+                        $("div.zone_seoul .sido_point").text(item.seoul);
+                        $("div.zone_busan .sido_name").text('부산');
+                        $("div.zone_busan .sido_point").text(item.busan);
+                        $("div.zone_daegu .sido_name").text('대구');
+                        $("div.zone_daegu .sido_point").text(item.daegu);
+                        $("div.zone_incheon .sido_name").text('인천');
+                        $("div.zone_incheon .sido_point").text(item.incheon);
+                        $("div.zone_gwangju .sido_name").text('광주');
+                        $("div.zone_gwangju .sido_point").text(item.gwangju);
+                        $("div.zone_daejeon .sido_name").text('대전');
+                        $("div.zone_daejeon .sido_point").text(item.daejeon);
+                        $("div.zone_ulsan .sido_name").text('울산');
+                        $("div.zone_ulsan .sido_point").text(item.ulsan);
+                        $("div.zone_gyeonggi .sido_name").text('경기');
+                        $("div.zone_gyeonggi .sido_point").text(item.gyeonggi);
+                        $("div.zone_gangwon .sido_name").text('강원');
+                        $("div.zone_gangwon .sido_point").text(item.gangwon);
+                        $("div.zone_chungbuk .sido_name").text('충북');
+                        $("div.zone_chungbuk .sido_point").text(item.chungbuk);
+                        $("div.zone_chungnam .sido_name").text('충남');
+                        $("div.zone_chungnam .sido_point").text(item.chungnam);
+                        $("div.zone_jeonbuk .sido_name").text('전북');
+                        $("div.zone_jeonbuk .sido_point").text(item.jeonbuk);
+                        $("div.zone_jeonnam .sido_name").text('전남');
+                        $("div.zone_jeonnam .sido_point").text(item.jeonnam);
+                        $("div.zone_gyeongbuk .sido_name").text('경북');
+                        $("div.zone_gyeongbuk .sido_point").text(item.gyeongbuk);
+                        $("div.zone_gyeongnam .sido_name").text('경남');
+                        $("div.zone_gyeongnam .sido_point").text(item.gyeongnam);
+                        $("div.zone_jeju .sido_name").text('제주');
+                        $("div.zone_jeju .sido_point").text(item.jeju);
+                        $("div.zone_sejong .sido_name").text('세종');
+                        $("div.zone_sejong .sido_point").text(item.sejong);
+                        return false;
+                    }
+                });
+            });
+
+            $('#pm25').click(function() {
+                $.each(mainData.list_PM25, function(idx, item) {
+                    if (idx == 0) {
+                        if (item.seoul > 0 && item.seoul <= 15) {
+                            $("#bubble_seoul").addClass("bubble bubble_blue");
+                        } else if (item.seoul > 15 && item.seoul <= 35) {
+                            $("#bubble_seoul").addClass("bubble bubble_green");
+                        } else if (item.seoul > 35 && item.seoul <= 75) {
+                            $("#bubble_seoul").addClass("bubble bubble_orange");
+                        } else if (item.seoul > 75) {
+                            $("#bubble_seoul").addClass("bubble bubble_red");
+                        }
+
+                        if (item.busan > 0 && item.busan <= 15) {
+                            $("#bubble_busan").addClass("bubble bubble_blue");
+                        } else if (item.busan > 15 && item.busan <= 35) {
+                            $("#bubble_busan").addClass("bubble bubble_green");
+                        } else if (item.busan > 35 && item.busan <= 75) {
+                            $("#bubble_busan").addClass("bubble bubble_orange");
+                        } else if (item.busan > 75) {
+                            $("#bubble_busan").addClass("bubble bubble_red");
+                        }
+
+                        if (item.daegu > 0 && item.daegu <= 15) {
+                            $("#bubble_daegu").addClass("bubble bubble_blue");
+                        } else if (item.daegu > 15 && item.daegu <= 35) {
+                            $("#bubble_daegu").addClass("bubble bubble_green");
+                        } else if (item.daegu > 35 && item.daegu <= 75) {
+                            $("#bubble_daegu").addClass("bubble bubble_orange");
+                        } else if (item.daegu > 75) {
+                            $("#bubble_daegu").addClass("bubble bubble_red");
+                        }
+
+                        if (item.incheon > 0 && item.incheon <= 15) {
+                            $("#bubble_incheon").addClass("bubble bubble_blue");
+                        } else if (item.incheon > 15 && item.incheon <= 35) {
+                            $("#bubble_incheon").addClass("bubble bubble_green");
+                        } else if (item.incheon > 35 && item.incheon <= 75) {
+                            $("#bubble_incheon").addClass("bubble bubble_orange");
+                        } else if (item.incheon > 75) {
+                            $("#bubble_incheon").addClass("bubble bubble_red");
+                        }
+
+                        if (item.gwangju > 0 && item.gwangju <= 15) {
+                            $("#bubble_gwangju").addClass("bubble bubble_blue");
+                        } else if (item.gwangju > 15 && item.gwangju <= 35) {
+                            $("#bubble_gwangju").addClass("bubble bubble_green");
+                        } else if (item.gwangju > 35 && item.gwangju <= 75) {
+                            $("#bubble_gwangju").addClass("bubble bubble_orange");
+                        } else if (item.gwangju > 75) {
+                            $("#bubble_gwangju").addClass("bubble bubble_red");
+                        }
+
+                        if (item.daejeon > 0 && item.daejeon <= 15) {
+                            $("#bubble_daejeon").addClass("bubble bubble_blue");
+                        } else if (item.daejeon > 15 && item.daejeon <= 35) {
+                            $("#bubble_daejeon").addClass("bubble bubble_green");
+                        } else if (item.daejeon > 35 && item.daejeon <= 75) {
+                            $("#bubble_daejeon").addClass("bubble bubble_orange");
+                        } else if (item.daejeon > 75) {
+                            $("#bubble_daejeon").addClass("bubble bubble_red");
+                        }
+
+                        if (item.ulsan > 0 && item.ulsan <= 15) {
+                            $("#bubble_ulsan").addClass("bubble bubble_blue");
+                        } else if (item.ulsan > 15 && item.ulsan <= 35) {
+                            $("#bubble_ulsan").addClass("bubble bubble_green");
+                        } else if (item.ulsan > 35 && item.ulsan <= 75) {
+                            $("#bubble_ulsan").addClass("bubble bubble_orange");
+                        } else if (item.ulsan > 75) {
+                            $("#bubble_ulsan").addClass("bubble bubble_red");
+                        }
+
+                        if (item.gyeonggi > 0 && item.gyeonggi <= 15) {
+                            $("#bubble_gyeonggi").addClass("bubble bubble_blue");
+                        } else if (item.gyeonggi > 15 && item.gyeonggi <= 35) {
+                            $("#bubble_gyeonggi").addClass("bubble bubble_green");
+                        } else if (item.gyeonggi > 35 && item.gyeonggi <= 75) {
+                            $("#bubble_gyeonggi").addClass("bubble bubble_orange");
+                        } else if (item.gyeonggi > 75) {
+                            $("#bubble_gyeonggi").addClass("bubble bubble_red");
+                        }
+
+                        if (item.gangwon > 0 && item.gangwon <= 15) {
+                            $("#bubble_gangwon").addClass("bubble bubble_blue");
+                        } else if (item.gangwon > 15 && item.gangwon <= 35) {
+                            $("#bubble_gangwon").addClass("bubble bubble_green");
+                        } else if (item.gangwon > 35 && item.gangwon <= 75) {
+                            $("#bubble_gangwon").addClass("bubble bubble_orange");
+                        } else if (item.gangwon > 75) {
+                            $("#bubble_gangwon").addClass("bubble bubble_red");
+                        }
+
+                        if (item.chungbuk > 0 && item.chungbuk <= 15) {
+                            $("#bubble_chungbuk").addClass("bubble bubble_blue");
+                        } else if (item.chungbuk > 15 && item.chungbuk <= 35) {
+                            $("#bubble_chungbuk").addClass("bubble bubble_green");
+                        } else if (item.chungbuk > 35 && item.chungbuk <= 75) {
+                            $("#bubble_chungbuk").addClass("bubble bubble_orange");
+                        } else if (item.chungbuk > 75) {
+                            $("#bubble_chungbuk").addClass("bubble bubble_red");
+                        }
+
+                        if (item.chungnam > 0 && item.chungnam <= 15) {
+                            $("#bubble_chungnam").addClass("bubble bubble_blue");
+                        } else if (item.chungnam > 15 && item.chungnam <= 35) {
+                            $("#bubble_chungnam").addClass("bubble bubble_green");
+                        } else if (item.chungnam > 35 && item.chungnam <= 75) {
+                            $("#bubble_chungnam").addClass("bubble bubble_orange");
+                        } else if (item.chungnam > 75) {
+                            $("#bubble_chungnam").addClass("bubble bubble_red");
+                        }
+
+                        if (item.jeonbuk > 0 && item.jeonbuk <= 15) {
+                            $("#bubble_jeonbuk").addClass("bubble bubble_blue");
+                        } else if (item.jeonbuk > 15 && item.jeonbuk <= 35) {
+                            $("#bubble_jeonbuk").addClass("bubble bubble_green");
+                        } else if (item.jeonbuk > 35 && item.jeonbuk <= 75) {
+                            $("#bubble_jeonbuk").addClass("bubble bubble_orange");
+                        } else if (item.jeonbuk > 75) {
+                            $("#bubble_jeonbuk").addClass("bubble bubble_red");
+                        }
+
+                        if (item.jeonnam > 0 && item.jeonnam <= 15) {
+                            $("#bubble_jeonnam").addClass("bubble bubble_blue");
+                        } else if (item.jeonnam > 15 && item.jeonnam <= 35) {
+                            $("#bubble_jeonnam").addClass("bubble bubble_green");
+                        } else if (item.jeonnam > 35 && item.jeonnam <= 75) {
+                            $("#bubble_jeonnam").addClass("bubble bubble_orange");
+                        } else if (item.jeonnam > 75) {
+                            $("#bubble_jeonnam").addClass("bubble bubble_red");
+                        }
+
+                        if (item.gyeongbuk > 0 && item.gyeongbuk <= 15) {
+                            $("#bubble_gyeongbuk").addClass("bubble bubble_blue");
+                        } else if (item.gyeongbuk > 15 && item.gyeongbuk <= 35) {
+                            $("#bubble_gyeongbuk").addClass("bubble bubble_green");
+                        } else if (item.gyeongbuk > 35 && item.gyeongbuk <= 75) {
+                            $("#bubble_gyeongbuk").addClass("bubble bubble_orange");
+                        } else if (item.gyeongbuk > 75) {
+                            $("#bubble_gyeongbuk").addClass("bubble bubble_red");
+                        }
+
+                        if (item.gyeongnam > 0 && item.gyeongnam <= 15) {
+                            $("#bubble_gyeongnam").addClass("bubble bubble_blue");
+                        } else if (item.gyeongnam > 15 && item.gyeongnam <= 35) {
+                            $("#bubble_gyeongnam").addClass("bubble bubble_green");
+                        } else if (item.gyeongnam > 35 && item.gyeongnam <= 75) {
+                            $("#bubble_gyeongnam").addClass("bubble bubble_orange");
+                        } else if (item.gyeongnam > 75) {
+                            $("#bubble_gyeongnam").addClass("bubble bubble_red");
+                        }
+
+                        if (item.jeju > 0 && item.jeju <= 15) {
+                            $("#bubble_jeju").addClass("bubble bubble_blue");
+                        } else if (item.jeju > 15 && item.jeju <= 35) {
+                            $("#bubble_jeju").addClass("bubble bubble_green");
+                        } else if (item.jeju > 35 && item.jeju <= 75) {
+                            $("#bubble_jeju").addClass("bubble bubble_orange");
+                        } else if (item.jeju > 75) {
+                            $("#bubble_jeju").addClass("bubble bubble_red");
+                        }
+
+                        if (item.sejong > 0 && item.sejong <= 15) {
+                            $("#bubble_sejong").addClass("bubble bubble_blue");
+                        } else if (item.sejong > 15 && item.sejong <= 35) {
+                            $("#bubble_sejong").addClass("bubble bubble_green");
+                        } else if (item.sejong > 35 && item.sejong <= 75) {
+                            $("#bubble_sejong").addClass("bubble bubble_orange");
+                        } else if (item.sejong > 75) {
+                            $("#bubble_sejong").addClass("bubble bubble_red");
+                        }
+                        $("div.zone_seoul .sido_name").text('서울');
+                        $("div.zone_seoul .sido_point").text(item.seoul);
+                        $("div.zone_busan .sido_name").text('부산');
+                        $("div.zone_busan .sido_point").text(item.busan);
+                        $("div.zone_daegu .sido_name").text('대구');
+                        $("div.zone_daegu .sido_point").text(item.daegu);
+                        $("div.zone_incheon .sido_name").text('인천');
+                        $("div.zone_incheon .sido_point").text(item.incheon);
+                        $("div.zone_gwangju .sido_name").text('광주');
+                        $("div.zone_gwangju .sido_point").text(item.gwangju);
+                        $("div.zone_daejeon .sido_name").text('대전');
+                        $("div.zone_daejeon .sido_point").text(item.daejeon);
+                        $("div.zone_ulsan .sido_name").text('울산');
+                        $("div.zone_ulsan .sido_point").text(item.ulsan);
+                        $("div.zone_gyeonggi .sido_name").text('경기');
+                        $("div.zone_gyeonggi .sido_point").text(item.gyeonggi);
+                        $("div.zone_gangwon .sido_name").text('강원');
+                        $("div.zone_gangwon .sido_point").text(item.gangwon);
+                        $("div.zone_chungbuk .sido_name").text('충북');
+                        $("div.zone_chungbuk .sido_point").text(item.chungbuk);
+                        $("div.zone_chungnam .sido_name").text('충남');
+                        $("div.zone_chungnam .sido_point").text(item.chungnam);
+                        $("div.zone_jeonbuk .sido_name").text('전북');
+                        $("div.zone_jeonbuk .sido_point").text(item.jeonbuk);
+                        $("div.zone_jeonnam .sido_name").text('전남');
+                        $("div.zone_jeonnam .sido_point").text(item.jeonnam);
+                        $("div.zone_gyeongbuk .sido_name").text('경북');
+                        $("div.zone_gyeongbuk .sido_point").text(item.gyeongbuk);
+                        $("div.zone_gyeongnam .sido_name").text('경남');
+                        $("div.zone_gyeongnam .sido_point").text(item.gyeongnam);
+                        $("div.zone_jeju .sido_name").text('제주');
+                        $("div.zone_jeju .sido_point").text(item.jeju);
+                        $("div.zone_sejong .sido_name").text('세종');
+                        $("div.zone_sejong .sido_point").text(item.sejong);
+                        return false;
+                    }
+                });
+            });
+
+            $('#o3').click(function() {
+                $.each(mainData.list_O3, function(idx, item) {
+                    if (idx == 0) {
+                        $("div.zone_seoul .bubble .sido_name").text('서울');
+                        $("div.zone_seoul .bubble .sido_point").text(item.seoul);
+                        $("div.zone_busan .bubble .sido_name").text('부산');
+                        $("div.zone_busan .bubble .sido_point").text(item.busan);
+                        $("div.zone_daegu .bubble .sido_name").text('대구');
+                        $("div.zone_daegu .bubble .sido_point").text(item.daegu);
+                        $("div.zone_incheon .bubble .sido_name").text('인천');
+                        $("div.zone_incheon .bubble .sido_point").text(item.incheon);
+                        $("div.zone_gwangju .bubble .sido_name").text('광주');
+                        $("div.zone_gwangju .bubble .sido_point").text(item.gwangju);
+                        $("div.zone_daejeon .bubble .sido_name").text('대전');
+                        $("div.zone_daejeon .bubble .sido_point").text(item.daejeon);
+                        $("div.zone_ulsan .bubble .sido_name").text('울산');
+                        $("div.zone_ulsan .bubble .sido_point").text(item.ulsan);
+                        $("div.zone_gyeonggi .bubble .sido_name").text('경기');
+                        $("div.zone_gyeonggi .bubble .sido_point").text(item.gyeonggi);
+                        $("div.zone_gangwon .bubble .sido_name").text('강원');
+                        $("div.zone_gangwon .bubble .sido_point").text(item.gangwon);
+                        $("div.zone_chungbuk .bubble .sido_name").text('충북');
+                        $("div.zone_chungbuk .bubble .sido_point").text(item.chungbuk);
+                        $("div.zone_chungnam .bubble .sido_name").text('충남');
+                        $("div.zone_chungnam .bubble .sido_point").text(item.chungnam);
+                        $("div.zone_jeonbuk .bubble .sido_name").text('전북');
+                        $("div.zone_jeonbuk .bubble .sido_point").text(item.jeonbuk);
+                        $("div.zone_jeonnam .bubble .sido_name").text('전남');
+                        $("div.zone_jeonnam .bubble .sido_point").text(item.jeonnam);
+                        $("div.zone_gyeongbuk .bubble .sido_name").text('경북');
+                        $("div.zone_gyeongbuk .bubble .sido_point").text(item.gyeongbuk);
+                        $("div.zone_gyeongnam .bubble .sido_name").text('경남');
+                        $("div.zone_gyeongnam .bubble .sido_point").text(item.gyeongnam);
+                        $("div.zone_jeju .bubble .sido_name").text('제주');
+                        $("div.zone_jeju .bubble .sido_point").text(item.jeju);
+                        $("div.zone_sejong .bubble .sido_name").text('세종');
+                        $("div.zone_sejong .bubble .sido_point").text(item.sejong);
+                        return false;
+                    }
+                });
+            });
+
+            $('#co').click(function() {
+                $.each(mainData.list_CO, function(idx, item) {
+                    if (idx == 0) {
+                        $("div.zone_seoul .bubble .sido_name").text('서울');
+                        $("div.zone_seoul .bubble .sido_point").text(item.seoul);
+                        $("div.zone_busan .bubble .sido_name").text('부산');
+                        $("div.zone_busan .bubble .sido_point").text(item.busan);
+                        $("div.zone_daegu .bubble .sido_name").text('대구');
+                        $("div.zone_daegu .bubble .sido_point").text(item.daegu);
+                        $("div.zone_incheon .bubble .sido_name").text('인천');
+                        $("div.zone_incheon .bubble .sido_point").text(item.incheon);
+                        $("div.zone_gwangju .bubble .sido_name").text('광주');
+                        $("div.zone_gwangju .bubble .sido_point").text(item.gwangju);
+                        $("div.zone_daejeon .bubble .sido_name").text('대전');
+                        $("div.zone_daejeon .bubble .sido_point").text(item.daejeon);
+                        $("div.zone_ulsan .bubble .sido_name").text('울산');
+                        $("div.zone_ulsan .bubble .sido_point").text(item.ulsan);
+                        $("div.zone_gyeonggi .bubble .sido_name").text('경기');
+                        $("div.zone_gyeonggi .bubble .sido_point").text(item.gyeonggi);
+                        $("div.zone_gangwon .bubble .sido_name").text('강원');
+                        $("div.zone_gangwon .bubble .sido_point").text(item.gangwon);
+                        $("div.zone_chungbuk .bubble .sido_name").text('충북');
+                        $("div.zone_chungbuk .bubble .sido_point").text(item.chungbuk);
+                        $("div.zone_chungnam .bubble .sido_name").text('충남');
+                        $("div.zone_chungnam .bubble .sido_point").text(item.chungnam);
+                        $("div.zone_jeonbuk .bubble .sido_name").text('전북');
+                        $("div.zone_jeonbuk .bubble .sido_point").text(item.jeonbuk);
+                        $("div.zone_jeonnam .bubble .sido_name").text('전남');
+                        $("div.zone_jeonnam .bubble .sido_point").text(item.jeonnam);
+                        $("div.zone_gyeongbuk .bubble .sido_name").text('경북');
+                        $("div.zone_gyeongbuk .bubble .sido_point").text(item.gyeongbuk);
+                        $("div.zone_gyeongnam .bubble .sido_name").text('경남');
+                        $("div.zone_gyeongnam .bubble .sido_point").text(item.gyeongnam);
+                        $("div.zone_jeju .bubble .sido_name").text('제주');
+                        $("div.zone_jeju .bubble .sido_point").text(item.jeju);
+                        $("div.zone_sejong .bubble .sido_name").text('세종');
+                        $("div.zone_sejong .bubble .sido_point").text(item.sejong);
+                        return false;
+                    }
+                });
+            });
+
+            $('#no2').click(function() {
+                $.each(mainData.list_NO2, function(idx, item) {
+                    if (idx == 0) {
+                        $("div.zone_seoul .bubble .sido_name").text('서울');
+                        $("div.zone_seoul .bubble .sido_point").text(item.seoul);
+                        $("div.zone_busan .bubble .sido_name").text('부산');
+                        $("div.zone_busan .bubble .sido_point").text(item.busan);
+                        $("div.zone_daegu .bubble .sido_name").text('대구');
+                        $("div.zone_daegu .bubble .sido_point").text(item.daegu);
+                        $("div.zone_incheon .bubble .sido_name").text('인천');
+                        $("div.zone_incheon .bubble .sido_point").text(item.incheon);
+                        $("div.zone_gwangju .bubble .sido_name").text('광주');
+                        $("div.zone_gwangju .bubble .sido_point").text(item.gwangju);
+                        $("div.zone_daejeon .bubble .sido_name").text('대전');
+                        $("div.zone_daejeon .bubble .sido_point").text(item.daejeon);
+                        $("div.zone_ulsan .bubble .sido_name").text('울산');
+                        $("div.zone_ulsan .bubble .sido_point").text(item.ulsan);
+                        $("div.zone_gyeonggi .bubble .sido_name").text('경기');
+                        $("div.zone_gyeonggi .bubble .sido_point").text(item.gyeonggi);
+                        $("div.zone_gangwon .bubble .sido_name").text('강원');
+                        $("div.zone_gangwon .bubble .sido_point").text(item.gangwon);
+                        $("div.zone_chungbuk .bubble .sido_name").text('충북');
+                        $("div.zone_chungbuk .bubble .sido_point").text(item.chungbuk);
+                        $("div.zone_chungnam .bubble .sido_name").text('충남');
+                        $("div.zone_chungnam .bubble .sido_point").text(item.chungnam);
+                        $("div.zone_jeonbuk .bubble .sido_name").text('전북');
+                        $("div.zone_jeonbuk .bubble .sido_point").text(item.jeonbuk);
+                        $("div.zone_jeonnam .bubble .sido_name").text('전남');
+                        $("div.zone_jeonnam .bubble .sido_point").text(item.jeonnam);
+                        $("div.zone_gyeongbuk .bubble .sido_name").text('경북');
+                        $("div.zone_gyeongbuk .bubble .sido_point").text(item.gyeongbuk);
+                        $("div.zone_gyeongnam .bubble .sido_name").text('경남');
+                        $("div.zone_gyeongnam .bubble .sido_point").text(item.gyeongnam);
+                        $("div.zone_jeju .bubble .sido_name").text('제주');
+                        $("div.zone_jeju .bubble .sido_point").text(item.jeju);
+                        $("div.zone_sejong .bubble .sido_name").text('세종');
+                        $("div.zone_sejong .bubble .sido_point").text(item.sejong);
+                        return false;
+                    }
+                });
+            });
+        });
+
+    </script>
+</head>
+
+<body>
+    <div data-role="page" id="page1">
+        <div data-role="panel" data-display="overlay" id="menuPanel" data-position-fixed="true">
+            <ul data-role="listview">
+                <li data-icon="delete"><a href="#" data-iconpos="notext" data-rel="close"></a></li>
+                <li class="lvOne" data-role="listdivider">측정소</li>
+                <li class="lvTwo"><a href="upload_test.html">측정소별 실시간 측정정보</a></li>
+                <li class="lvOne" data-role="listdivider">실시간 조회</li>
+                <li class="lvTwo"><a href="barcode_test.html">통합대기환경지수 나쁨 이상 측정소</a></li>
+                <li class="lvTwo"><a href="#">시도별 실시간 평균정보</a></li>
+                <li class="lvTwo"><a href="#">시군구별 실시간 평균정보</a></li>
+                <li class="lvTwo"><a href="#">시도별 실시간 측정정보</a></li>
+                <li class="lvTwo"><a href="#">시군구별 실시간 평균정보</a></li>
+                <li class="lvOne" data-role="listdivider">예보</li>
+                <li class="lvTwo"><a href="#">대기질 예보통보</a></li>
+                <li class="lvOne" data-role="listdivider">통계자료</li>
+                <li class="lvTwo"><a href="#">측정소별 최종확정 농도 조회</a></li>
+                <li class="lvTwo"><a href="#">기간별 오염통계 정보 조회</a></li>
+                <li class="lvTwo"><a href="#">오존주의보 발생정보 조회</a></li>
+                <li class="lvTwo"><a href="#">황사주의보 발생정보 조회</a></li>
+            </ul>
+        </div>
+
+        <div data-role="header" data-position="fixed" id="main_header">
+            <a href="#menuPanel" data-icon="bars" data-iconpos="notext" class="ui-btn-left" id="btnMenuPanel"></a>
+            <!--<button data-icon="bars" data-iconpos="notext" class="ui-btn-left" id="btnMenuPanel"></button>-->
+            <h1>실시간 미세먼지 정보</h1>
+            <a href="#myPopup" data-icon="gear" data-iconpos="notext" class="ui-btn-right" id="btnSettingPanel"></a>
+
+            <div data-role="navbar">
+                <ul class="main_navbar">
+                    <li><a href="#" id="pm10" class="ui-btn-active">미세먼지</a></li>
+                    <li><a href="#" id="pm25">초미세먼지</a></li>
+                    <li><a href="#" id="o3">오존</a></li>
+                    <li><a href="#" id="co">일산화탄소 </a></li>
+                    <li><a href="#" id="no2">이산화질소</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div data-role="content">
+            <div id="map_korea">
+                <img src="img/korea_map2.png" id="img_korea">
+            </div>
+
+            <div class="common_mark_size zone_seoul">
+                <p id="bubble_seoul">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_busan">
+                <p id="bubble_busan">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_daegu">
+                <p id="bubble_daegu">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_incheon">
+                <p id="bubble_incheon">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_gwangju">
+                <p id="bubble_gwangju">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_daejeon">
+                <p id="bubble_daejeon">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_ulsan">
+                <p id="bubble_ulsan">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_gyeonggi">
+                <p id="bubble_gyeonggi">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_gangwon">
+                <p id="bubble_gangwon">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_chungbuk">
+                <p id="bubble_chungbuk">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_chungnam">
+                <p id="bubble_chungnam">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_jeonbuk">
+                <p id="bubble_jeonbuk">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_jeonnam">
+                <p id="bubble_jeonnam">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_gyeongbuk">
+                <p id="bubble_gyeongbuk">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_gyeongnam">
+                <p id="bubble_gyeongnam">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_jeju">
+                <p id="bubble_jeju">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <div class="common_mark_size zone_sejong">
+                <p id="bubble_sejong">
+                    <span class="sido_name"></span>
+                    <span class="sido_point"></span>
+                </p>
+            </div>
+
+            <!--                <div class="bg">
+                    <img src="img/korea_map2.png">
+                </div>-->
+
+            <!--                <a href="menu_panel.html" data-transition="slide">페이지 이동1</a><br/>
+                <a href="#page2" data-transition="slideup">페이지 이동2</a><br/>
+                <a href="#page2" data-transition="slidedown">페이지 이동3</a><br/>
+                <a href="#page2" data-transition="slidefade">페이지 이동4</a><br/>
+                <a href="#page2" data-transition="flip">페이지 이동5</a><br/>
+                <a href="#page2" data-transition="fade">페이지 이동6</a><br/>
+                <a href="#page2" data-transition="pop">페이지 이동7</a><br/>
+                <a href="#page2" data-transition="turn">페이지 이동8</a><br/>
+                <a href="#page2" data-transition="flow">페이지 이동9</a><br/>
+                <a href="#page2" data-direction="reverse">페이지 이동10</a><br/>
+                <a href="#page2" data-transition="none">페이지 이동11</a><br/>-->
+        </div>
+
+        <div data-role="footer" data-position="fixed" id="main_footer">
+            <h1>첫번째 페이지 풋더</h1>
+        </div>
+    </div>
+
+    <div data-role="page" id="page2">
+        <div data-role="header" data-add-back-btn="true" data-backbtn="false">
+            <h1>2번째 페이지 헤더</h1>
+        </div>
+
+        <div data-role="content">
+            ㅁㄴㅇㄴㅁㅇㄴㅁㅇㅁㅇㄴㅇ
+        </div>
+
+        <div data-role="footer">
+            <h1>2번째 페이지 풋더</h1>
+        </div>
+    </div>
+</body>
+<script src="cordova.js"></script>
+
+</html>

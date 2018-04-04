@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <title>Hello World</title>
+</head>
+
+<body>
+    <!-- 페이지 제목 -->
+    <div class="page-header">
+        <div class="container"><h1>Geolocation</h1></div>
+    </div>
+
+    <!-- 페이지 내용 -->
+    <div class="container">
+        <ul class="list-group">
+            <li class="list-group-item">위도: <span></span></li>
+            <li class="list-group-item">경도: <span></span></li>
+            <li class="list-group-item">고도(미터단위): <span></span></li>
+            <li class="list-group-item">위경도 정확도(미터단위): <span></span></li>
+            <li class="list-group-item">고도 정확도(미터단위): <span></span></li>
+            <li class="list-group-item">속도(초당미터단위): <span></span></li>
+            <li class="list-group-item">
+                방향(0=북,동=90,남=180,서=270)-속도가 0인 경우 값 없음: <span></span>
+            </li>
+            <li class="list-group-item">위치수집시각: <span></span></li>
+        </ul>
+    </div>
+    <!-- jQuery script 참조 -->
+    <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
+    <!-- Bootstrap 참조 -->
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- cordova script 참조 -->
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript">
+    /** jQuery 화면 초기화 이벤트 */
+    $(function() {
+        /** phonegap 초기화 이벤트 */
+        $(document).on('deviceready', function() {
+            setTimeout(function() {
+                navigator.splashscreen.hide();
+                StatusBar.backgroundColorByHexString("#ff6600");
+                StatusBar.overlaysWebView(false);
+            }, 1000);
+
+            /** 장치 초기화와 함께 위치정보 취득 시작 */
+            // 위치정보객체 참조 변수
+            var geo_id = navigator.geolocation.watchPosition(
+                // 위치 정보 취득 성공시 호출될 콜백함수
+                function(position) {
+                    // 위도
+                    $('.list-group-item:eq(0) span').html(position.coords.longitude);
+                    // 경도
+                    $('.list-group-item:eq(1) span').html(position.coords.latitude);
+                    // 고도
+                    $('.list-group-item:eq(2) span').html(position.coords.altitude);
+                    // 위경도 정확도 (미터 단위)
+                    $('.list-group-item:eq(3) span').html(position.coords.accuracy);
+                    // 고도 정확도 (미터 단위)
+                    $('.list-group-item:eq(4) span').html(position.coords.altitudeAccuracy);
+                    // 속도 (초당 미터 단위)
+                    $('.list-group-item:eq(5) span').html(position.coords.speed);
+                    // 방향 (속도가 없는 경우 값 없음)
+                    $('.list-group-item:eq(6) span').html(position.coords.heading);
+                    // 위치정보 수집 시각
+                    $('.list-group-item:eq(7) span').html(position.timestamp);
+                },
+
+                // 위치정보 취득 실패시 호출될 콜백함수
+                function(err) {
+                    alert("[" + err.code + "] " + err.message);
+                },
+
+                // 위치정보 처리 옵션
+                {
+                    maximumAge: 1000, // 갱신주기(1/1000초 단위)
+                    timeout: 30000, // 타임아웃(1/1000초 단위)
+                    enableHighAccuracy: true // 높은 정확도 사용
+                }
+            ); // end watchPosition
+
+            /** 현재 웹 페이지가 종료될 때에 대한 이벤트 정의 */
+            $(window).unload(function() {
+            	if (geo_id !== undefined && geo_id !== null) {
+            	    // 위치정보 취득을 중단한다.
+            	    navigator.geolocation.clearWatch(geo_id);
+            	}
+            });
+        });
+    });
+    </script>
+</body>
+
+</html>
