@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "716185868063",
+    "firebase_url": "https://app-celloa-cordova-dev.firebaseio.com",
+    "project_id": "app-celloa-cordova-dev",
+    "storage_bucket": "app-celloa-cordova-dev.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:716185868063:android:2a254a17c79f4c1e",
+        "android_client_info": {
+          "package_name": "com.celloa.cordova.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "716185868063-oudf69lojng2vi8i86r01uacosg55a89.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7rUeS4H8r-GiHE86x7eBxMM4YPcvjQOc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
